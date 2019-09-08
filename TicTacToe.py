@@ -1,207 +1,145 @@
-#Constants
-# EMPTY = 0
-# PLAYER1 = 1
-# PLAYER2 = 2
-SIZE = 3
+ROWS = 3
+COLS = 3
+NUM_PLAYERS = 2
+ERR_OCC = 3
+ERR_OOB = 2
+ERR_FORMAT = 1
+ERR_NONE = 0
 
 class Game:
     def __init__(self):
-        self.player1 = Player("Player 1")
-        self.player2 = Player("Player 2")
-        self.gameBoard = GameBoard()
+        self.gameBoard = Board()
+        self.players = [Player("Player 1", 'X'), Player("Player 2", 'O')]
 
-    def playGame(self):
-        end = False
+    def play(self):
+        currPlayer = self.players[0]
+        gameEnd = False
 
+        while not gameEnd:
+            currPlayer, gameEnd = self.turn(currPlayer)
+
+    def turn(self, currPlayer):
         self.gameBoard.display()
-        #while not end:
-        self.player1.turn()
-        self.gameBoard.display()
-        #end = gameEnd(tile)
-        #if end != True:
-        self.player2.turn()
-        self.gameBoard.display()
-        #end = gameEnd(tile)
+        error, x, y = currPlayer.selectPlacement(self.gameBoard, ERR_NONE)
+        self.gameBoard.addTile(x, y, currPlayer)
+        currPlayer = self.changePlayer(currPlayer)
 
-class Player:
-    def __init__(self, playerName):
-        self.playerName = playerName
+        return (currPlayer, False)
 
-    def turn(self):
-        input1 = None
-        tilex = None
-        tiley = None
-        error = 0
+    def changePlayer(self, currPlayer):
+        currPlayerIndex = self.players.index(currPlayer)
+        if currPlayerIndex == NUM_PLAYERS - 1:
+            currPlayer = self.players[0]
+        else:
+            currPlayer = self.players[currPlayerIndex + 1]
 
-        print(self.playerName + "'s turn")
-        print("Formatting: Format your entries as [LETTER][NUMBER], where letter represents X and number represents Y. Example: A1")
-        input1 = input("Please input your target location: ")
-        tilex, tiley = parse(input1)
-        error = errCheck(tilex, tiley)
-        while error != 0:
-            if error == 1:
-                input1 = input("Incorrect input format. Please try again (example of correct formating: C3, B2): ")
-            elif error == 2:
-                input1 = input("Selected tile is out of range. Please select a different tile: ")
-            elif error == 3: 
-                input1 = input("Selected tile is already occupied. Please select a different tile: ")
-            tilex, tiley = parse(input1)
-            error = errCheck(tilex, tiley, tile)
-        self.place(tilex, tiley)
-        print("")
+        return currPlayer
 
-    def place(self, tilex, tiley):
-        game.gameBoard.tile[tilex][tiley].tileOwner = self
+    # def winner(self):
 
 
-class GameBoard:
+
+
+class Board:
     def __init__(self):
-        self.tile = [[Tile(None, x, y) for x in range(SIZE)] for y in range(SIZE)]
-    
+        self.tile = [[None for y in range(ROWS)] for x in range(COLS)]
+
+    def addTile(self, x, y, owner):
+        self.tile[x][y] = Tile(x, y, owner)
+
     def display(self):
-        print("    A   B   C ")
-        for y in range (0, SIZE):
-            print(" " + str(y + 1) + " ", end ="")
-            for x in range(0, SIZE):
-                if self.tile[x][y].tileOwner == None:
-                    print("   ", end ="")
-                elif self.tile[x][y].tileOwner == game.player1:
-                    print(" X ", end ="")
-                elif self.tile[x][y].tileOwner == game.player2:
-                    print(" O ", end ="")
-                if x != SIZE - 1:
-                    print("|", end ="")
-            if y != SIZE - 1:
-                print("\n   ---+---+---")
-        print("\n")
+        for y in range(0, ROWS):
+            for x in range(0, COLS):
+                if self.tile[x][y] != None:
+                    self.tile[x][y].print()
+                else:
+                    print("   ", end='')
+                if x < COLS - 1:
+                    print("|", end='')
+                else:
+                    print("")
+            if y < ROWS - 1:
+                print("---+---+---")
+
+    def getAdjacent(self, xdir, ydir, tile):
+        x = tile.x + xdir
+        y = tile.y + ydir
+        if x >= 0 and x < COLS and y >= ROWS and y < ROWS:
+            adjacent = self.tile[x][y]
+        else:
+            adjacent = -1
+        return adjacent
+
 
 class Tile:
-    def __init__(self, tileOwner, x, y):
-        self.tileOwner = tileOwner
+    def __init__(self, x, y, owner):
+        self.x = x
+        self.y = y
+        self.owner = owner
 
+    def print(self):
+        print(" " + self.owner.character + " ", end='')
+
+
+class Player:
+    def __init__(self, name, character):
+        self.name = name
+        self.character = character
+
+    def selectPlacement(self, gameBoard, error):
+        if error == ERR_NONE:
+            print(self.name + "'s turn")
+            print("Formatting: Format your entries as [LETTER][NUMBER]. Example: A1")
+            input1 = input("Please input your target location: ")
+            error, x, y = self.parse(input1, gameBoard)
+        elif error == ERR_FORMAT:
+            input1 = input("Incorrect input format. Please try again: ")
+            error, x, y = self.parse(input1, gameBoard)
+        elif error == ERR_OOB:
+            input1 = input("Selected space is not in bounds. Please try again: ")
+            error, x, y = self.parse(input1, gameBoard)
+        elif error == ERR_OCC:
+            input1 = input("Tile is already occupied. Please try again: ")
+            error, x, y = self.parse(input1, gameBoard)
+        if error != ERR_NONE:
+            error, x, yS = self.selectPlacement(gameBoard, error)
+        
+        return (error, x, y) 
+
+    def parse(self, input1, gameBoard):
+        error = ERR_NONE
+
+        if len(input1) != 2:
+            error = ERR_FORMAT
+        else:
+            x = input1[0]
+            y = input1[1]
+            if y.isnumeric():
+                y = int(y) - 1
+            else:
+                error = ERR_FORMAT
+            if error == ERR_NONE:
+                if ord(x) >= ord('A') and ord(x) <= ord('J'):
+                    x = int(chr(ord(x) - (ord('A') - ord('0'))))
+                elif ord(x) >= ord('a') and ord(x) <= ord('j'):
+                    x = int(chr(ord(x) - (ord('a') - ord('0'))))
+                elif ord(x) <= ord('Z') or ord(x) <= ord(z):
+                    error = ERR_OOB
+                else:
+                    error = ERR_FORMAT 
+            if error == ERR_NONE:
+                if x < 0 or x > COLS or y < 0 or y > ROWS:
+                    error = ERR_OOB
+            if error == ERR_NONE:
+                if gameBoard.tile[x][y] != None:
+                    error = ERR_OCC
+        
+        return (error, x, y)
 
 
 def main():
-    game.playGame()
-
-def parse(input1):
-    x = None
-    y = None
-    valid = True
-    inplen = len(input1)
-
-    if inplen is 2:
-        x = input1[0]
-        y = input1[1]
-        if ord(x) - 16 >= 49 and ord(x) - 16 < 49 + SIZE:
-            x = int(chr(ord(x) - 17))
-        elif ord(x) - 48 >= 49 and ord(x) - 48 < 49 + SIZE:
-            x = int(chr(ord(x) - 49))
-        else:
-            x = -1
-        if y.isnumeric():
-            y = int(y) - 1
-        else:
-            y = -1
-    else:
-        x = -1
-        y = -1
-
-    return x, y
-
-def errCheck(tilex, tiley):
-    error = 0
-
-    print("X: " + str(tilex))
-    print("Y: " + str(tiley))
-    if tilex < 0 or tiley < 0:
-        error = 1
-    elif tilex > SIZE - 1 or tiley > SIZE - 1:
-        error = 2
-    elif game.gameBoard.tile[tilex][tiley].tileOwner != None:
-        error = 3
-    
-    return error
-
-# def gameEnd(tile):
-#     end = False
-#     winner = checkWinner(tile)
-
-#     if winner == PLAYER1:
-#         print("Player 1 wins!")
-#         end = True
-#     elif winner == PLAYER2:
-#         print("Player 2 wins!")
-#         end = True
-
-#     return end
-
-# def checkWinner(tile):
-#     winner = 0
-
-#     for y in range(0, SIZE):
-#         for x in range(0, SIZE):
-#             player = tile[x][y]
-#             if player != EMPTY:
-#                 if checkHor(x, y, player, tile) == 2:
-#                     winner = player
-#                 elif checkVert(x, y, player, tile) == 2:
-#                     winner = player
-#                 elif checkDiagDown(x, y, player, tile) == 2:
-#                     winner = player
-#                 elif checkDiagUp(x, y, player, tile) == 2:
-#                     winner = player
-                
-#     return winner
+    game = Game()
+    game.play()
 
 
-
-# def checkHor(x, y, player, tile):
-#     matches = 0
-#     matches = checkTile(x, y, 1, 0, player, matches, tile)
-
-#     return matches
-
-
-
-# def checkVert(x, y, player, tile):
-#     matches = 0
-#     matches = checkTile(x, y, 0, 1, player, matches, tile)
-
-#     return matches
-
-
-
-# def checkDiagDown(x, y, player, tile):
-#     matches = 0
-#     matches = checkTile(x, y, 1, 1, player, matches, tile)
-
-#     return matches
-
-
-
-# def checkDiagUp(x, y, player, tile):
-#     matches = 0
-#     matches = checkTile(x, y, 1, -1, player, matches, tile)
-
-#     return matches
-
-
-
-# def checkTile(x, y, xdir, ydir, player, matches, tile):
-#     match3 = False
-#     x += xdir
-#     y += ydir
-#     #print("x:" + str(x))
-#     #print("y: " + str(y))
-#     #print("Matches: " + str(matches))
-#     if x < SIZE and y < SIZE and x >= 0 and y >= 0:
-#         if tile[x][y] == player:
-#             matches += 1
-#             matches = checkTile(x, y, xdir, ydir, player, matches, tile)
-
-#     return matches
-
-
-game = Game()
 main()
