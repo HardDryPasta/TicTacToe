@@ -102,12 +102,14 @@ class Player:
             input1 = input("Tile is already occupied. Please try again: ")
             error, x, y = self.parse(input1, gameBoard)
         if error != ERR_NONE:
-            error, x, yS = self.selectPlacement(gameBoard, error)
+            error, x, y = self.selectPlacement(gameBoard, error)
         
         return (error, x, y) 
 
     def parse(self, input1, gameBoard):
         error = ERR_NONE
+        x = None
+        y = None
 
         if len(input1) != 2:
             error = ERR_FORMAT
@@ -123,12 +125,12 @@ class Player:
                     x = int(chr(ord(x) - (ord('A') - ord('0'))))
                 elif ord(x) >= ord('a') and ord(x) <= ord('j'):
                     x = int(chr(ord(x) - (ord('a') - ord('0'))))
-                elif ord(x) <= ord('Z') or ord(x) <= ord(z):
+                elif ord(x) <= ord('Z') or ord(x) <= ord('z'):
                     error = ERR_OOB
                 else:
                     error = ERR_FORMAT 
             if error == ERR_NONE:
-                if x < 0 or x > COLS or y < 0 or y > ROWS:
+                if x < 0 or x > COLS - 1 or y < 0 or y > ROWS - 1:
                     error = ERR_OOB
             if error == ERR_NONE:
                 if gameBoard.tile[x][y] != None:
