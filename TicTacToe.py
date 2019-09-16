@@ -49,7 +49,7 @@ class Game:
     def display(self):
         print("    A   B   C")
         for y in range(0, 3):
-            print(" " + str(y) + " ", end='')
+            print(" " + str(y + 1) + " ", end='')
             for x in range(0, 3):
                 self.board[x][y].print()
                 if x < 2:
@@ -212,7 +212,7 @@ class AI(Player):
 
 
         # Check center
-        if board[1][1].isOpen:
+        if board[1][1].isOpen():
             tile = board[1][1]
             return tile
 
@@ -220,11 +220,11 @@ class AI(Player):
         # Check opposite
         for i in range(0, 3, 2):
             for j in range(0, 3, 2):
-                occTile = gameBoard[j][i]
+                occTile = board[j][i]
                 if not occTile.isOpen() and occTile.owner != self:
                     xtemp = (occTile.x - 2) * -1
                     ytemp = (occTile.y - 2) * -1
-                    if gameBoard[x][y].isOpen():
+                    if board[x][y].isOpen():
                         tile = board[xtemp][ytemp]
                         return tile
 
@@ -236,17 +236,17 @@ class AI(Player):
                     return tile
 
         # Check side
-        if gameBoard[1][0].isOpen():
-            tile = gameBoard[1][0]
+        if board[1][0].isOpen():
+            tile = board[1][0]
             return tile
-        elif gameBoard[0][1].isOpen():
-            tile = gameBoard[0][1]
+        elif board[0][1].isOpen():
+            tile = board[0][1]
             return tile
-        elif gameBoard[1][2].isOpen():
-            tile = gameBoard[1][2]
+        elif board[1][2].isOpen():
+            tile = board[1][2]
             return tile
         else:
-            tile = gameBoard[2][1]
+            tile = board[2][1]
             return tile
 
 
