@@ -15,14 +15,14 @@ class Game:
         currPlayer = None
         turn = 0
 
-        self.display()
+        print("Starting new game.")
         while gameEnd == 0:
             turn += 1
             currPlayer = self.changePlayer(currPlayer)
+            self.display()
             print("\n" + currPlayer.name + "'s turn")
             x, y = currPlayer.selectPlacement(self.gameBoard)
             newTile = self.place(x, y, currPlayer)
-            self.display()
             gameEnd = self.qEndGame(newTile, turn, currPlayer)
 
     def changePlayer(self, currPlayer):
@@ -46,10 +46,12 @@ class Game:
         gameEnd = 0
 
         if self.qWinner(newTile):
-            print(currPlayer.name + " wins!")
+            self.display()
+            print("\n" + currPlayer.name + " wins!")
             gameEnd = 1
         elif self.qTie(turn):
-            print("Game ends in tie.")
+            self.display()
+            print("\n" + "Game ends in tie.")
             gameEnd = 2
         
         return gameEnd
@@ -105,11 +107,7 @@ class Game:
         for y in range(0, 3):
             for x in range(0, 3):
                 if self.gameBoard[x][y].owner == None:
-<<<<<<< HEAD
                     print("   ", end='')
-=======
-                    print("   ", end = '')
->>>>>>> temp
                 else:
                     print(" " + self.gameBoard[x][y].owner.character + " ", end='')
                 if x < 2:
@@ -134,10 +132,6 @@ class Player:
     def selectPlacement(self, gameBoard):
         error = False
 
-<<<<<<< HEAD
-        print(self.name + "'s turn")
-=======
->>>>>>> temp
         print("Formatting: Format your entries as [LETTER][NUMBER]. Example: A1")
         inp = input("Please input your target location: ")
         error, x, y = self.parse(inp, gameBoard)
@@ -184,10 +178,6 @@ class AI(Player):
         acted, x, y = self.win(gameBoard)
         if not acted:
             acted, x, y = self.block(gameBoard)
-        # if not acted:
-        #     acted, x, y = fork(gameBoard)
-        # if not acted:
-        #     acted, x, y = blockFork(gameBoard)
         if not acted:
             acted, x, y = self.center(gameBoard)
         if not acted:
