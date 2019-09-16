@@ -19,10 +19,7 @@ class Game:
         while gameEnd == 0:
             turn += 1
             currPlayer = self.changePlayer(currPlayer)
-<<<<<<< HEAD
-=======
             print("\n" + currPlayer.name + "'s turn")
->>>>>>> temp
             x, y = currPlayer.selectPlacement(self.gameBoard)
             newTile = self.place(x, y, currPlayer)
             self.display()
