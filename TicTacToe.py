@@ -36,6 +36,7 @@ class Game:
                 print("\Game ends in tie!\n")
                 break
             currPlayer = self.changePlayer(currPlayer)
+        input("\nPress enter to exit.")
 
     def changePlayer(self, currPlayer):
         if currPlayer == self.player1:
@@ -150,6 +151,8 @@ class AI(Player):
         col = [None] * 3
         diagUp = None
         diagDown = None
+
+        print("AI is selecting move...")
 
         # Check win
         for y in range(0, 3):
