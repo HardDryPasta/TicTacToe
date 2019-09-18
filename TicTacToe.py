@@ -5,22 +5,50 @@ class Game:
         self.board = None
         self.player1 = None
         self.player2 = None
-
+        self.AIWins = 0
+        self.playerWins = 0
+        self.ties = 0
+        
     def startGame(self):
-        self.board = [[Tile(x, y, None) for x in range(0,3)] for y in range(0, 3)]
+        playing = True
+
+        while playing:
+            print("\n++++ NEW GAME ++++\n\n")
+            self.playGame()
+            inp = input("Would you like to play again? (Y/N): ")
+            while True:
+                if inp[0] == 'Y' or inp[0] == 'y':
+                    break
+                elif inp[0] == 'N' or inp[0] == 'n':
+                    playing = False
+                    break
+                else:
+                    inp = input("Invalid inpuy. Please inpu Y(es) or N(o): ")
+
+        print("Now exiting the game...")
+        print("\n++++ SCOREBOARD ++++\n")
+        print("AI Wins: " + str(self.AIWins))
+        print("Player Wins: " + str(self.playerWins))
+        print("Ties: " + str(self.ties))
+        print("\nThanks for playing!")
+        
+    def playGame(self):
+        self.board = [[Tile(x, y, None) for y in range(0,3)] for x in range(0, 3)]
         num = random.randint(0, 1)
 
         if num == 0:
-            self.player1 = Player('X', "Player 1")
-            self.player2 = AI('O', "Player 2")
+            self.player1 = Player('X', "Player")
+            self.player2 = AI('O', "AI")
             print("You are Player 1 (X)\n")
         else:
-            self.player1 = AI('X', "Player 1")
-            self.player2 = Player('O', "Player 2")
+            self.player1 = AI('X', "AI")
+            self.player2 = Player('O', "Player")
             print("AI is Player 1 (X)\n")
+
         currPlayer = self.player1
         self.display()
         print("")
+
         while True:
             print(currPlayer.name + "'s turn")
             currPlayer.place(self.board)
@@ -29,14 +57,18 @@ class Game:
             print("")
             win, winner = self.isWin()
             if win:
+                if isinstance(winner, AI):
+                    self.AIWins += 1
+                elif isinstance(winner, BadAI):
+                    self.badAIWins += 1
                 print("\n" + winner.name + " wins!\n")
                 break
             tie = self.isFull()
             if tie:
-                print("\Game ends in tie!\n")
+                self.ties += 1
+                print("Game ends in tie!\n")
                 break
             currPlayer = self.changePlayer(currPlayer)
-        input("\nPress enter to exit.")
 
     def changePlayer(self, currPlayer):
         if currPlayer == self.player1:
@@ -210,11 +242,98 @@ class AI(Player):
                     tile = i
                     return tile
 
-
         # Check center
         if board[1][1].isOpen():
             tile = board[1][1]
             return tile
+
+        # Create fork
+        opponentFork = None
+        for y in range(0, 3):
+            for x in range(0, 3):
+                tile = board[x][y]
+                if tile.isOpen():
+                    winInTwo = 0
+                    if status(getColumn(tile.x, board), self) == 3:
+                        winInTwo += 1
+                    if status(getRow(tile.y, board), self) == 3:
+                        winInTwo += 1
+                    diagDown = getDiagDown(board)
+                    if isInRange(tile, diagDown):
+                        if status(diagDown, self) == 3:
+                            winInTwo += 1
+                    diagUp = getDiagUp(board)
+                    if isInRange(tile, diagUp):
+                        if status(diagUp, self) == 3:
+                            winInTwo += 1
+                    if winInTwo >= 2:
+                        return tile    
+    
+        # Block fork
+        bChoice = None
+        sbChoice = None
+
+        for x in range(0, 3, 2):
+            column = getColumn(x, board)
+            if status(column, self) == 5:
+                witCount = 0
+                for y in range(0, 3, 2):
+                    row = getRow(y, board)
+                    if status(row, self) == 5:
+                        witCount += 1
+                if witCount == 2:
+                    bChoice = column
+                    break
+                elif witCount == 1:
+                    sbChoice = column
+        
+        if bChoice == None:
+            for y in range(0, 3, 2):
+                row = getRow(y, board)
+                if status(row, self) == 5:
+                    witCount = 0
+                    for x in range(0, 3, 2):
+                        column = getColumn(x, board)
+                        if status(column, self) == 5:
+                            witCount += 1
+                    if witCount == 2:
+                        bChoice = row
+                        break
+                    elif witCount == 1:
+                        sbChoice = row
+        
+        if bChoice != None:
+            if bChoice[1].isOpen():
+                row = getRow(bChoice[1].y, board)
+                column = getColumn(bChoice[1].x, board)
+                if status(row, self) == 3 or status(column, self) == 3:
+                    return bChoice[1]
+            elif bChoice[0].isOpen():
+                # row = getRow(bChoice[0].y, board)
+                # column = getColumn(bChoice[0].x, board)
+                # if status(row, self) == 3 or status(column, self) == 3:
+                return bChoice[0]
+            elif bChoice[2].isOpen():
+                # row = getRow(bChoice[2].y, board)
+                # column = getColumn(bChoice[2].x, board)
+                # if status(row, self) == 3 or status(column, self) == 3:
+                return bChoice[2]
+        elif sbChoice != None:
+            if sbChoice[1].isOpen():
+                row = getRow(sbChoice[1].y, board)
+                column = getColumn(sbChoice[1].x, board)
+                if status(row, self) == 3 or status(column, self) == 3:
+                    return sbChoice[1]
+            elif sbChoice[0].isOpen():
+                # row = getRow(sbChoice[0].y, board)
+                # column = getColumn(sbChoice[0].x, board)
+                # if status(row, self) == 3 or status(column, self) == 3:
+                return sbChoice[0]
+            elif sbChoice[2].isOpen():
+                # row = getRow(sbChoice[2].y, board)
+                # column = getColumn(sbChoice[2].x, board)
+                # if status(row, self) == 3 or status(column, self) == 3:
+                return sbChoice[2]
 
         
         # Check opposite
@@ -249,67 +368,14 @@ class AI(Player):
             tile = board[2][1]
             return tile
 
-
-        # # Check block fork
-        # forks = [[]] * 3
-        # for y in range(0, 3):
-        #     row = getRow(y, board)
-        #     if status(row, self) == 5:
-        #         count = 0
-        #         for i in row:
-        #             count += 1
-        #             if i.owner == None:
-        #                 column = getColumn(x, board)
-        #                 if status(column, self) == 5:
-        #                     forks[y].append(column)
-        #         if y == 0:
-        #             diagDown = diagDown(board)
-        #             if status(diagDown, self) == 5:
-        #                 forks[y].append(diagDown)
-        #         if y == 2:
-        #             diagUp = diagUp(board)
-        #             if status(diagUp, self) == 5:
-        #                 forks[y].append(diagDown)
-        #     if len(forks[y]) > 1:
-        #         forks[y].append(row)
-
-        # # advanced fork        
-        # for run in forks:
-        #     bestMatch = None
-        #     matchNum = 0
-        #     if len(run) >= 3:
-        #         option = []
-        #         for y in range(0, 3):
-        #             row = getRow(y, board)
-        #             if status(row, self) == 3:
-        #                 for j in row:
-        #                     if j.owner == None:
-        #                         tile = j
-        #                         option.append(tile)
-        #         for x in range(0, 3):
-        #             col = getColumn(x, board)
-        #             if status(column, self) == 3:
-        #                 for j in column:
-        #                     if j.owner == None:
-        #                         tile = j
-        #                         option.append(tile)
-        #         diagUp = status(getDiagUp(board))
-        #         if status(diagUp, self) == 3:
-        #             for j in diagUp:
-        #                 if j.owner == None:
-        #                     tile = j
-        #                     option.append(tile)
-        #         diagDown = status(diagDown(board))
-        #             for j in diagDown:
-        #                 if j.owner == None:
-        #                     tile = j
-        #                     option.append(tile)
-        #         for j in option:
-        #             count = 0
-        #             for k in run:
-        #                 if j == k:
-        #                     count += 1
-        #             if count > mat
+class BadAI(Player):
+    def selectTile(self, board):
+        while True:
+            x = random.randint(0, 2)
+            y = random.randint(0, 2)
+            tile = board[x][y]
+            if tile.isOpen():
+                return tile
 
 
 class Tile:
@@ -373,7 +439,25 @@ def status(run, player):
             status += 5
     
     return status
+
+def isInRange(tile, rng):
+    for i in rng:
+        if i == tile:
+            return True
     
+    return False
+
+def xInRange(tile, rng):
+    for i in rng:
+        if i == tile.x:
+            return True
+    return False
+
+def yInRange(tile, rng):
+    for i in rng:
+        if i == tile.y:
+            return True
+    return False
 
 
 def main():
