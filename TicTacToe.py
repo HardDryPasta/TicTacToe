@@ -5,25 +5,38 @@ class Game:
         self.board = None
         self.player1 = None
         self.player2 = None
+        self.AIWins = None
+        self.playerWins = None
+        self.ties = None
+        
+    def startGame(self):
         self.AIWins = 0
         self.playerWins = 0
         self.ties = 0
-        
-    def startGame(self):
         playing = True
 
+        print("\n+--------------------------+")
+        print("|  UNBEATABLE TIC TAC TOE  |")
+        print("+--------------------------+\n")
+        print("Welcome to unbeatable tic tac toe.")
+        print("Author: Felix Prior")
+        print("Email: felix@firemail.cc")
+        print("Version: 1.0")
+        print("Date released: Sept. 18, 2019\n")
+        input("Whenever you are ready to start, hit [enter]")
+
         while playing:
-            print("\n++++ NEW GAME ++++\n\n")
+            print("\n++++ NEW GAME ++++\n")
             self.playGame()
-            inp = input("Would you like to play again? (Y/N): ")
+            inp = input("Would you like to play again? Y(es)/N(o): ")
             while True:
-                if inp[0] == 'Y' or inp[0] == 'y':
-                    break
-                elif inp[0] == 'N' or inp[0] == 'n':
-                    playing = False
-                    break
-                else:
-                    inp = input("Invalid inpuy. Please inpu Y(es) or N(o): ")
+                if len(inp) != 0:
+                    if inp[0] == 'Y' or inp[0] == 'y':
+                        break
+                    elif inp[0] == 'N' or inp[0] == 'n':
+                        playing = False
+                        break
+                inp = input("Invalid inpuy. Please inpu Y(es) or N(o): ")
 
         print("Now exiting the game...")
         print("\n++++ SCOREBOARD ++++\n")
@@ -278,9 +291,10 @@ class AI(Player):
             if status(column, self) == 5:
                 witCount = 0
                 for y in range(0, 3, 2):
-                    row = getRow(y, board)
-                    if status(row, self) == 5:
-                        witCount += 1
+                    if board[x][y].isOpen():
+                        row = getRow(y, board)
+                        if status(row, self) == 5:
+                            witCount += 1
                 if witCount == 2:
                     bChoice = column
                     break
@@ -293,9 +307,10 @@ class AI(Player):
                 if status(row, self) == 5:
                     witCount = 0
                     for x in range(0, 3, 2):
-                        column = getColumn(x, board)
-                        if status(column, self) == 5:
-                            witCount += 1
+                        if board[x][y].isOpen():
+                            column = getColumn(x, board)
+                            if status(column, self) == 5:
+                                witCount += 1
                     if witCount == 2:
                         bChoice = row
                         break
